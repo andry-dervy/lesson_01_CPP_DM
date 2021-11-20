@@ -47,10 +47,10 @@ bool operator<(const Person &personFirst,
                const Person &personSecond)
 {
   return tie(personFirst.surname,
-             personFirst.surname,
+             personFirst.name,
              personFirst.patronymic) <
          tie(personSecond.surname,
-             personSecond.surname,
+             personSecond.name,
              personSecond.patronymic);
 }
 
@@ -58,10 +58,10 @@ bool operator==(const Person &personFirst,
                const Person &personSecond)
 {
   return tie(personFirst.surname,
-             personFirst.surname,
+             personFirst.name,
              personFirst.patronymic) ==
          tie(personSecond.surname,
-             personSecond.surname,
+             personSecond.name,
              personSecond.patronymic);
 }
 
@@ -460,7 +460,7 @@ void task_3()
 {
   cout << "Task 3\n" << endl;
 
-  string nameFile = "testFile2"; //getNameFile();
+  string nameFile = "testFile"; //getNameFile();
 
   ifstream fin(nameFile + ".txt");
 
@@ -510,7 +510,7 @@ void task_3()
 void task_3_test()
 {
   cout << "\nTask 3 Test from this lesson.\n" << endl;
-  ifstream file("testFile2.txt"); // путь к файлу PhoneBook.txt
+  ifstream file("testFile.txt"); // путь к файлу PhoneBook.txt
   PhoneBook book(file);
   cout << book;
 
