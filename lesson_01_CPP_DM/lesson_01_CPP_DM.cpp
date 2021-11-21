@@ -14,6 +14,7 @@
 #include <tuple>
 #include <vector>
 #include <algorithm>
+#include <memory>
 
 using namespace std;
 //----------------------------------------------------------------------------
@@ -264,10 +265,12 @@ void task_2()
 Используйте алгоритмическую функцию find_if.
 //*/
 
+//std::shared_ptr<Date> today = std::make_shared<Date>(21,9,2021);
+
 class PhoneBook
 {
 private:
-  vector<pair<Person*,PhoneNumber*>> vecPair;
+  vector<pair<shared_ptr<Person>,shared_ptr<PhoneNumber>>> vecPair;
 public:
   PhoneBook(ifstream &inFile);
   ~PhoneBook();
@@ -339,7 +342,7 @@ PhoneBook::PhoneBook(ifstream &inFile)
       if(vName.size() < 2 || vPhoneNumber.size() < 3)
         continue;
 
-      Person *pPerson = new Person;
+      shared_ptr<Person> pPerson = make_shared<Person>();
 
       pPerson->surname = vName[0];
       pPerson->name = vName[1];
@@ -348,7 +351,7 @@ PhoneBook::PhoneBook(ifstream &inFile)
       else
         pPerson->patronymic = nullopt;
 
-      PhoneNumber *pPhoneNumber = new PhoneNumber;
+      shared_ptr<PhoneNumber> pPhoneNumber = make_shared<PhoneNumber>();
 
       pPhoneNumber->codeCountry = stoi(vPhoneNumber[0]);
       pPhoneNumber->codeCity = stoi(vPhoneNumber[1]);
@@ -370,28 +373,26 @@ PhoneBook::PhoneBook(ifstream &inFile)
 
 PhoneBook::~PhoneBook()
 {
-  for(auto& a: vecPair)
-  {
-    delete a.first;
-    delete a.second;
-  }
 }
 
 std::ostream& operator<<(std::ostream& out, const PhoneBook &pb)
 {
   for(const auto& a: pb.vecPair)
   {
-    out << *a.first << " " << *a.second << endl;
+    if(a.first != nullptr && a.second != nullptr)
+      out << *a.first << " " << *a.second << endl;
   }
   return out;
 }
 
 void PhoneBook::SortByName()
 {
-  auto Comp = [](pair<Person*,PhoneNumber*> p1,
-                 pair<Person*,PhoneNumber*> p2) -> bool
+  auto Comp = [](pair<shared_ptr<Person>,shared_ptr<PhoneNumber>> p1,
+                 pair<shared_ptr<Person>,shared_ptr<PhoneNumber>> p2) -> bool
     {
-      return *p1.first < *p2.first;
+      if(p1.first != nullptr && p2.second != nullptr)
+        return *p1.first < *p2.first;
+      return false;
     };
 
   sort(vecPair.begin(),vecPair.end(),Comp);
@@ -399,10 +400,12 @@ void PhoneBook::SortByName()
 
 void PhoneBook::SortByPhone()
 {
-  auto Comp = [](pair<Person*,PhoneNumber*> p1,
-                 pair<Person*,PhoneNumber*> p2) -> bool
+  auto Comp = [](pair<shared_ptr<Person>,shared_ptr<PhoneNumber>> p1,
+                 pair<shared_ptr<Person>,shared_ptr<PhoneNumber>> p2) -> bool
     {
-      return *p1.second < *p2.second;
+      if(p1.second != nullptr && p2.second != nullptr)
+        return *p1.second < *p2.second;
+      return false;
     };
 
   sort(vecPair.begin(),vecPair.end(),Comp);
@@ -411,8 +414,8 @@ void PhoneBook::SortByPhone()
 tuple<string,PhoneNumber> PhoneBook::GetPhoneNumber(const string &surname) const
 {
   size_t cnt = 0;
-  const PhoneNumber *p_pn;
-  auto counter = [&cnt,surname,&p_pn](const pair<Person*,PhoneNumber*> &p){
+  shared_ptr<PhoneNumber> p_pn;
+  auto counter = [&cnt,surname,&p_pn](const pair<shared_ptr<Person>,shared_ptr<PhoneNumber>> &p){
     if(surname == p.first->surname)
     {
       ++cnt;
@@ -436,11 +439,13 @@ tuple<string,PhoneNumber> PhoneBook::GetPhoneNumber(const string &surname) const
 void PhoneBook::ChangePhoneNumber(const Person &person, const PhoneNumber &phoneNumber)
 {
   auto it = find_if(vecPair.begin(),vecPair.end(),
-                    [person](pair<Person*,PhoneNumber*> p) -> bool
-        {
-          return person == *p.first;
-        }
-      );
+                    [person](pair<shared_ptr<Person>,shared_ptr<PhoneNumber>> p) -> bool
+                      {
+                        if(p.first != nullptr)
+                          return person == *p.first;
+                        return false;
+                      }
+                    );
 
   if(it != vecPair.end())
   {
